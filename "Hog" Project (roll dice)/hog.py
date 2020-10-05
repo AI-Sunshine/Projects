@@ -22,17 +22,16 @@ def roll_dice(num_rolls, dice=six_sided):
     assert type(num_rolls) == int, 'num_rolls must be an integer.'
     assert num_rolls > 0, 'Must roll at least once.'
     # BEGIN PROBLEM 1
-    sum = 0
+    total, roll_one = 0, False
     while num_rolls > 0:
+        num_rolls -= 1
         outcome = dice()
         if outcome == 1:
-            while num_rolls > 1:
-                dice()
-                num_rolls -= 1
-            return 1
-        sum += outcome
-        num_rolls -= 1
-    return sum
+            roll_one = True
+        total += outcome
+    if roll_one:
+        return 1
+    return total
     # END PROBLEM 1
 
 
@@ -167,16 +166,15 @@ def play(strategy0, strategy1, score0=0, score1=0, dice=six_sided,
     while score0 < goal and score1 < goal: 
         if who == 0:
             score0 += take_turn(strategy0(score0, score1), score1, dice)  
-            while extra_turn(score0, score1) and score0 < goal:
-                say = say(score0, score1) 
-                score0 += take_turn(strategy0(score0, score1), score1, dice)
+        elif who == 1:
+            score1 += take_turn(strategy1(score1, score0), score0, dice) 
+        while who == 0 and extra_turn(score0, score1) and score0 < goal:
             say = say(score0, score1) 
-        else:
-            score1 += take_turn(strategy1(score1, score0), score0, dice)        
-            while extra_turn(score1, score0) and score1 < goal:
-                say = say(score0, score1) 
-                score1 += take_turn(strategy1(score1, score0), score0, dice)
+            score0 += take_turn(strategy0(score0, score1), score1, dice)  
+        while who == 1 and extra_turn(score1, score0) and score1 < goal:
             say = say(score0, score1) 
+            score1 += take_turn(strategy1(score1, score0), score0, dice)
+        say = say(score0, score1) 
         who = other(who)
     # END PROBLEM 5
     # (note that the indentation for the problem 6 prompt (***YOUR CODE HERE***) might be misleading)
@@ -337,15 +335,12 @@ def max_scoring_num_rolls(dice=six_sided, trials_count=1000):
     1
     """
     # BEGIN PROBLEM 9
-    roll = 1
-    result = 1
-    score = 0
+    roll, result, score = 1, 1, 0
     while roll <= 10:
         mk_max = make_averaged(roll_dice, trials_count)
         max_score = mk_max(roll, dice)
         if max_score > score:
-            result = roll
-            score = max_score
+            result, score = roll, max_score
         roll += 1
     return result 
     # END PROBLEM 9
